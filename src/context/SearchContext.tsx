@@ -1,25 +1,25 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 
-export interface SearchResult {
+export interface ISearchResult {
     category: string;
     name: string;
     url: string;
 }
 
 interface SearchContextType {
-  searchResults: Record<string, SearchResult[]>;
+  searchResults: Record<string, ISearchResult[]>;
   fetchSearchResults: (query: string) => Promise<void>;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
 export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [searchResults, setSearchResults] = useState<Record<string, SearchResult[]>>({});
+  const [searchResults, setSearchResults] = useState<Record<string, ISearchResult[]>>({});
 
   const fetchSearchResults = useCallback(async (query: string) => {
     const categories = ['people', 'planets', 'films', 'starships', 'vehicles'];
-    const results: Record<string, SearchResult[]> = {};
+    const results: Record<string, ISearchResult[]> = {};
 
     await Promise.all(categories.map(async (category) => {
       const response = await axios.get(`https://swapi.dev/api/${category}?search=${query}`);
