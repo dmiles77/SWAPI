@@ -1,22 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearch } from '../context/SearchContext';
-import { TextField, Typography, Container, CircularProgress, styled, Grid, Link } from '@mui/material';
+import { TextField, Typography, Container, CircularProgress, Grid, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import debounce from 'lodash/debounce';
 
 const SearchPage: React.FC = () => {
     const [query, setQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const { searchResults, fetchSearchResults } = useSearch();
+    const { searchResults, fetchSearchResults, resetSearchResults } = useSearch();
     const navigate = useNavigate();
+
+    // Define debounced search function
+    const debouncedFetchSearchResults = useCallback(
+        debounce(async (query: string) => {
+            setLoading(true);
+            try {
+                await fetchSearchResults(query);
+            } catch (error) {
+                console.error("Error fetching search results:", error);
+            } finally {
+                setLoading(false);
+            }
+        }, 300),
+        [fetchSearchResults]
+    );
 
     useEffect(() => {
         if (query) {
-            setLoading(true);
-            fetchSearchResults(query)
-                .then(() => setLoading(false))
-                .catch(() => setLoading(false));
+            debouncedFetchSearchResults(query);
+        } else {
+            resetSearchResults();
         }
-    }, [query, fetchSearchResults]);
+
+        return () => debouncedFetchSearchResults.cancel();
+    }, [query, debouncedFetchSearchResults]);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value);

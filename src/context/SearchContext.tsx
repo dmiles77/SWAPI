@@ -10,7 +10,11 @@ export interface ISearchResult {
 interface SearchContextType {
   searchResults: Record<string, ISearchResult[]>;
   fetchSearchResults: (query: string) => Promise<void>;
+  resetSearchResults: () => void;
 }
+
+const BaseUrl = 'https://swapi.dev/api';
+const categories = ['people', 'planets', 'films', 'starships', 'vehicles'];
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
@@ -18,11 +22,10 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [searchResults, setSearchResults] = useState<Record<string, ISearchResult[]>>({});
 
   const fetchSearchResults = useCallback(async (query: string) => {
-    const categories = ['people', 'planets', 'films', 'starships', 'vehicles'];
     const results: Record<string, ISearchResult[]> = {};
 
     await Promise.all(categories.map(async (category) => {
-      const response = await axios.get(`https://swapi.dev/api/${category}?search=${query}`);
+      const response = await axios.get(`${BaseUrl}/${category}?search=${query}`);
       results[category] = response.data.results.slice(0, 3).map((item: any) => ({
         name: item.name || item.title,
         url: item.url,
@@ -32,8 +35,12 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSearchResults(results);
   }, []);
 
+    const resetSearchResults = () => {
+        setSearchResults({});
+    }
+
   return (
-    <SearchContext.Provider value={{ searchResults, fetchSearchResults }}>
+    <SearchContext.Provider value={{ searchResults, fetchSearchResults, resetSearchResults }}>
       {children}
     </SearchContext.Provider>
   );
