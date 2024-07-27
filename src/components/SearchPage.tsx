@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearch } from '../context/SearchContext';
+import { useAppContext } from '../context/AppContext';
 import { TextField, Typography, Container, CircularProgress, Grid, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce';
 const SearchPage: React.FC = () => {
     const [query, setQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const { searchResults, fetchSearchResults, resetSearchResults } = useSearch();
+    const { searchResults, fetchSearchResults, resetSearchResults } = useAppContext();
     const navigate = useNavigate();
 
     const debouncedFetchSearchResults = useCallback(

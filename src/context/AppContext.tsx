@@ -1,29 +1,9 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
+import { ISearchResult, ICategoryData } from '../interfaces/interfaces';
+import { categories, BaseUrl } from '../interfaces/consts';
 
-export interface ISearchResult {
-    category: string;
-    name: string;
-    url: string;
-}
-
-
-export interface ICategoryData {
-    name: string
-    height: string
-    mass: string
-    hair_color: string
-    skin_color: string
-    eye_color: string
-    birth_year: string
-    gender: string
-    homeworld: string
-    created: string
-    edited: string
-    url: string
-}
-
-interface SearchContextType {
+interface AppContextType {
     searchResults: Record<string, ISearchResult[]>;
     fetchSearchResults: (query: string) => Promise<void>;
     resetSearchResults: () => void;
@@ -31,18 +11,14 @@ interface SearchContextType {
     categoriesData: Record<string, ICategoryData[]>;
 }
 
-const BaseUrl = 'https://swapi.dev/api';
-const categories = ['people', 'planets', 'films', 'starships', 'vehicles'];
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const SearchContext = createContext<SearchContextType | undefined>(undefined);
-
-export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [searchResults, setSearchResults] = useState<Record<string, ISearchResult[]>>({});
     const [categoriesData, setCategoriesData] = useState<Record<string, ICategoryData[]>>({});
 
     const fetchSearchResults = useCallback(async (query: string) => {
         const results: Record<string, ISearchResult[]> = {};
-
         await Promise.all(categories.map(async (category) => {
             const response = await axios.get(`${BaseUrl}/${category}?search=${query}`);
             results[category] = response.data.results.slice(0, 3).map((item: any) => ({
@@ -66,16 +42,16 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     return (
-        <SearchContext.Provider value={{ searchResults, fetchSearchResults, resetSearchResults, fetchCategoryData, categoriesData }}>
+        <AppContext.Provider value={{ searchResults, fetchSearchResults, resetSearchResults, fetchCategoryData, categoriesData }}>
             {children}
-        </SearchContext.Provider>
+        </AppContext.Provider>
     );
 };
 
-export const useSearch = () => {
-    const context = useContext(SearchContext);
+export const useAppContext = () => {
+    const context = useContext(AppContext);
     if (!context) {
-        throw new Error('useSearch must be used within a SearchProvider');
+        throw new Error('AppContext must be used within a AppContextProvider');
     }
     return context;
 };

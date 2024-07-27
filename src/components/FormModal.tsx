@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
 import { Modal, Button, TextField, Grid, Typography } from '@mui/material';
-
-interface FormField {
-    fieldName: string;
-    label: string;
-    isMandatory: boolean;
-    fieldType: 'text' | 'number' | 'date';
-}
+import { IFormField } from '../interfaces/interfaces';
 
 interface FormModalProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (data: Record<string, any>) => void;
-    fields: FormField[];
+    fields: IFormField[];
+    isEditMode: boolean;
     initialData?: Record<string, any>;
 }
 
-const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, initialData = {} }) => {
+const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, initialData = {}, isEditMode }) => {
     const [formData, setFormData] = useState<Record<string, any>>(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -44,9 +39,9 @@ const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, 
 
     return (
         <Modal open={open} onClose={onClose}>
-            <div style={{ padding: '20px', background: '#fff', margin: 'auto', width: '50%' }}>
-                <Typography variant="h6" mb={2}>Form</Typography>
+            <Grid sx={{ padding: '20px', background: '#fff', margin: 'auto', width: '50%' }}>
                 <Grid container spacing={2}>
+                    <Typography variant="h6" m={2}>{isEditMode ? 'Edit' : 'Create'}</Typography>
                     {fields.map((field) => (
                         <Grid item xs={12} key={field.fieldName}>
                             <TextField
@@ -69,7 +64,7 @@ const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, 
                         </Grid>
                     </Grid>
                 </Grid>
-            </div>
+            </Grid>
         </Modal>
     );
 };
