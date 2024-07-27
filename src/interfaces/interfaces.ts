@@ -24,7 +24,6 @@ export interface ICategoryData {
     eye_color: string
     birth_year: string
     gender: string
-    homeworld: string
     created: string
     edited: string
     url: string

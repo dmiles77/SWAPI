@@ -43,8 +43,13 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
             setCategoryData(updatedData);
         }
         
-        if (tableRef.current) {
-            tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        if (tableRef.current && modalMode === 'add') {
+            // make sure the table is rendered and then scroll to the bottom
+            setTimeout(() => {
+                if (tableRef.current) {
+                    tableRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            }, 100);
         }
     };
 
@@ -61,7 +66,6 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
         { fieldName: 'eye_color', label: 'Eye Color', isMandatory: false, fieldType: FieldTypes.TEXT },
         { fieldName: 'birth_year', label: 'Birth Year', isMandatory: false, fieldType: FieldTypes.TEXT },
         { fieldName: 'gender', label: 'Gender', isMandatory: false, fieldType: FieldTypes.TEXT },
-        { fieldName: 'homeworld', label: 'Homeworld', isMandatory: false, fieldType: FieldTypes.TEXT },
     ]; // it's better to get it as a prop this component needs to be generic
 
     return (

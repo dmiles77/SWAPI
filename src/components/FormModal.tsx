@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, TextField, Grid, Typography, Box } from '@mui/material';
 import { IFormField } from '../interfaces/interfaces';
 import { styled } from '@mui/material/styles';
@@ -50,6 +50,10 @@ const Footer = styled(Box)({
 const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, initialData = {}, isEditMode }) => {
     const [formData, setFormData] = useState<Record<string, any>>(initialData);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        setFormData(initialData);
+    }, [initialData]);
 
     const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [field]: event.target.value });
