@@ -7,12 +7,28 @@ export interface ISearchResult {
     url: string;
 }
 
+
+export interface ICategoryData {
+    name: string
+    height: string
+    mass: string
+    hair_color: string
+    skin_color: string
+    eye_color: string
+    birth_year: string
+    gender: string
+    homeworld: string
+    created: string
+    edited: string
+    url: string
+}
+
 interface SearchContextType {
     searchResults: Record<string, ISearchResult[]>;
     fetchSearchResults: (query: string) => Promise<void>;
     resetSearchResults: () => void;
     fetchCategoryData: (category: string) => void;
-    categoriesData: Record<string, ISearchResult[]>;
+    categoriesData: Record<string, ICategoryData[]>;
 }
 
 const BaseUrl = 'https://swapi.dev/api';
@@ -22,7 +38,7 @@ const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
 export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [searchResults, setSearchResults] = useState<Record<string, ISearchResult[]>>({});
-    const [categoriesData, setCategoriesData] = useState<Record<string, ISearchResult[]>>({});
+    const [categoriesData, setCategoriesData] = useState<Record<string, ICategoryData[]>>({});
 
     const fetchSearchResults = useCallback(async (query: string) => {
         const results: Record<string, ISearchResult[]> = {};
