@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, Button, TextField, Grid, Typography } from '@mui/material';
+import { Modal, Button, TextField, Grid, Typography, Box } from '@mui/material';
 import { IFormField } from '../interfaces/interfaces';
+import { styled } from '@mui/material/styles';
 
 interface FormModalProps {
     open: boolean;
@@ -10,6 +11,41 @@ interface FormModalProps {
     isEditMode: boolean;
     initialData?: Record<string, any>;
 }
+
+const ModalBackdrop = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100vw',
+    height: '100vh',
+}));
+
+const ModalContainer = styled(Box)(({ theme }) => ({
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    width: '80%',
+    maxWidth: '600px',
+    height: '80%',
+    display: 'flex',
+    flexDirection: 'column',
+    [theme.breakpoints.down('sm')]: {
+        width: '90%',
+        height: '70%',
+    },
+}));
+
+const ContentWrapper = styled(Box)({
+    flex: 1,
+    overflowY: 'auto',
+    padding: '20px',
+});
+
+const Footer = styled(Box)({
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: '16px',
+    borderTop: '1px solid #ddd',
+});
 
 const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, initialData = {}, isEditMode }) => {
     const [formData, setFormData] = useState<Record<string, any>>(initialData);
@@ -39,32 +75,39 @@ const FormModal: React.FC<FormModalProps> = ({ open, onClose, onSubmit, fields, 
 
     return (
         <Modal open={open} onClose={onClose}>
-            <Grid sx={{ padding: '20px', background: '#fff', margin: 'auto', width: '50%' }}>
-                <Grid container spacing={2}>
-                    <Typography variant="h6" m={2}>{isEditMode ? 'Edit' : 'Create'}</Typography>
-                    {fields.map((field) => (
-                        <Grid item xs={12} key={field.fieldName}>
-                            <TextField
-                                label={field.label}
-                                type={field.fieldType}
-                                fullWidth
-                                value={formData[field.fieldName] || ''}
-                                onChange={handleChange(field.fieldName)}
-                                error={!!errors[field.fieldName]}
-                                helperText={errors[field.fieldName]}
-                            />
+            <ModalBackdrop>
+                <ModalContainer>
+                    <Typography variant="h6" m={2} textAlign="center">
+                        {isEditMode ? 'Edit' : 'Create'}
+                    </Typography>
+                    <ContentWrapper>
+                        <Grid container spacing={2}>
+                            {fields.map((field) => (
+                                <Grid item xs={12} key={field.fieldName}>
+                                    <TextField
+                                        label={field.label}
+                                        type={field.fieldType}
+                                        fullWidth
+                                        value={formData[field.fieldName] || ''}
+                                        onChange={handleChange(field.fieldName)}
+                                        error={!!errors[field.fieldName]}
+                                        helperText={errors[field.fieldName]}
+                                        required={field.isMandatory}
+                                    />
+                                </Grid>
+                            ))}
                         </Grid>
-                    ))}
-                    <Grid container spacing={2} mt={2}>
-                        <Grid item>
-                            <Button variant="contained" onClick={handleSubmit}>Confirm</Button>
-                        </Grid>
-                        <Grid item>
-                            <Button variant="outlined" onClick={onClose}>Cancel</Button>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Grid>
+                    </ContentWrapper>
+                    <Footer>
+                        <Button variant="contained" onClick={handleSubmit} sx={{ marginRight: '10px' }}>
+                            Confirm
+                        </Button>
+                        <Button variant="outlined" onClick={onClose}>
+                            Cancel
+                        </Button>
+                    </Footer>
+                </ModalContainer>
+            </ModalBackdrop>
         </Modal>
     );
 };

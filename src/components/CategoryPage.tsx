@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import moment from 'moment';
 import { useAppContext } from '../context/AppContext';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Button, Container, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Button, Container, Typography, Box } from '@mui/material';
 import FormModal from './FormModal';
 import { FieldTypes } from '../interfaces/consts';
+import { formatDate } from '../utils/date-utils';
 
 interface Props {
     category: string;
@@ -72,9 +74,9 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
                     <Button variant="contained" onClick={handleAdd}>Create</Button>
                 </Grid>
             </Grid>
-            <Grid container sx={{ maxHeight: '500px', overflow: 'auto' }}>
+            <Box sx={{ maxHeight: '500px', overflow: 'auto' }}>
                 <TableContainer>
-                    <Table ref={tableRef}>
+                    <Table ref={tableRef} sx={{ minWidth: 650 }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell>Name</TableCell>
@@ -87,12 +89,11 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
                                         <TableCell>Eye Color</TableCell>
                                         <TableCell>Birth Year</TableCell>
                                         <TableCell>Gender</TableCell>
-                                        <TableCell>Homeworld</TableCell>
                                         <TableCell>Created</TableCell>
                                         <TableCell>Edited</TableCell>
                                     </>
                                 )}
-                                <TableCell>Actions</TableCell>
+                                <TableCell sx={{ position: 'sticky', right: 0, backgroundColor: 'white', zIndex: 10 }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -108,21 +109,20 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
                                             <TableCell>{rowData.eye_color}</TableCell>
                                             <TableCell>{rowData.birth_year}</TableCell>
                                             <TableCell>{rowData.gender}</TableCell>
-                                            <TableCell>{rowData.homeworld}</TableCell>
-                                            <TableCell>{rowData.created}</TableCell>
-                                            <TableCell>{rowData.edited}</TableCell>
+                                            <TableCell>{formatDate(rowData.created)}</TableCell>
+                                            <TableCell>{formatDate(rowData.edited)}</TableCell>
                                         </>
                                     )}
-                                    <TableCell>
+                                    <TableCell sx={{ position: 'sticky', right: 0, backgroundColor: 'white', zIndex: 10 }}>
                                         <Button onClick={() => handleEdit(index)}>Edit</Button>
-                                                <Button onClick={() => handleDelete(index)}>Delete</Button>
+                                        <Button onClick={() => handleDelete(index)}>Delete</Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </Grid>
+            </Box>
             <FormModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
