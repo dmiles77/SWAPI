@@ -10,7 +10,7 @@ const App: React.FC = () => {
       <SearchProvider>
         <Routes>
           <Route path="/" element={<SearchPage />} />
-          <Route path="/category/people" element={<CategoryPage />} />
+          <Route path="/category/people" element={<CategoryPage category='people' />} />
           <Route path="/category/:category" element={<div>Category Page</div>} />
         </Routes>
       </SearchProvider>

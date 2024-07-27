@@ -10,7 +10,6 @@ const SearchPage: React.FC = () => {
     const { searchResults, fetchSearchResults, resetSearchResults } = useSearch();
     const navigate = useNavigate();
 
-    // Define debounced search function
     const debouncedFetchSearchResults = useCallback(
         debounce(async (query: string) => {
             setLoading(true);

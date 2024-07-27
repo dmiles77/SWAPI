@@ -1,62 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { useSearch } from '../context/SearchContext';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Container, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, Grid, TableRow, Button, Container, Typography } from '@mui/material';
 
-const CategoryPage: React.FC = () => {
-  const { searchResults } = useSearch();
-  const [people, setPeople] = useState<any[]>([]);
+interface Props {
+    category: string;
+};
 
-  useEffect(() => {
-    if (searchResults['people']) {
-      setPeople(searchResults['people']);
-    }
-  }, [searchResults]);
+const CategoryPage: React.FC<Props> = ({ category }) => {
+    const { fetchCategoryData, categoriesData } = useSearch();
+    const [categoryData, setCategoryData] = useState<any[]>([]);
 
-  const handleAdd = () => {
-    const newPerson = { name: 'New Character', url: '' };
-    setPeople([...people, newPerson]);
-  };
+    useEffect(() => {
+        fetchCategoryData(category);
+        setCategoryData(categoriesData[category] || []);
+    }, [categoriesData, category, fetchCategoryData]);
 
-  const handleDelete = (index: number) => {
-    setPeople(people.filter((_, i) => i !== index));
-  };
+    const handleAdd = () => {
+        const newRow = { name: 'New', url: '' };
+        setCategoryData([...categoryData, newRow]);
+    };
 
-  const handleEdit = (index: number) => {
-    const updatedName = prompt('Enter new name:', people[index].name);
-    if (updatedName !== null) {
-      const updatedPeople = [...people];
-      updatedPeople[index].name = updatedName;
-      setPeople(updatedPeople);
-    }
-  };
+    const handleDelete = (index: number) => {
+        setCategoryData(categoryData.filter((_, i) => i !== index));
+    };
 
-  return (
-    <Container>
-      <Typography variant="h4">People</Typography>
-      <Button variant="contained" onClick={handleAdd}>Create</Button>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {people.map((person, index) => (
-              <TableRow key={index}>
-                <TableCell>{person.name}</TableCell>
-                <TableCell>
-                  <Button onClick={() => handleEdit(index)}>Edit</Button>
-                  <Button onClick={() => handleDelete(index)}>Delete</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container>
-  );
+    const handleEdit = (index: number) => {
+        const updated = prompt('Enter new name:', categoryData[index].name);
+        if (updated !== null) {
+            const updatedRow = [...categoryData];
+            updatedRow[index].name = updated;
+            setCategoryData(updatedRow);
+        }
+    };
+
+    return (
+        <Container>
+            <Grid sx={{ padding: '8px' }} justifyContent='space-between' container>
+                <Grid item>
+                    <Typography variant="h4">{category}</Typography>
+                </Grid>
+                <Grid item>
+                    <Button variant="contained" onClick={handleAdd}>Create</Button>
+                </Grid>
+            </Grid>
+            <Grid container sx={{ maxHeight: '500px', overflow: 'auto' }}>
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Name</TableCell>
+                                <TableCell>Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {categoryData.map((rowData, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{rowData.name}</TableCell>
+                                    <TableCell>
+                                        <Button onClick={() => handleEdit(index)}>Edit</Button>
+                                        <Button onClick={() => handleDelete(index)}>Delete</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Grid>
+        </Container>
+    );
 };
 
 export default CategoryPage;
