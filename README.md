@@ -20,3 +20,4 @@ This application allows users to search for Star Wars entities, view search resu
 - Axios
 - Styled-Components
 - Lodash (for debounce functionality)
+- Moment js
