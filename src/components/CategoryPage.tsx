@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import moment from 'moment';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, Button, Container, Typography, Box } from '@mui/material';
 import FormModal from './FormModal';
@@ -19,9 +18,32 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
     const tableRef = useRef<HTMLTableElement>(null);
 
     useEffect(() => {
-        fetchCategoryData(category);
-        setCategoryData(categoriesData[category] || []);
-    }, [categoriesData, category, fetchCategoryData]);
+        console.log('render');
+        if (category && !categoryData.length) {
+            fetchCategoryData(category);
+             // in the network tab, you ,might see 2 calls in dev mode that's because of strict mode
+             // does't effect the production build
+        }
+    }, []);
+
+    useEffect(() => {
+        if (categoriesData[category]) {
+            setCategoryData(categoriesData[category]);
+        }
+    }, [categoriesData]);
+
+    if (category !== 'people') {
+        return (
+            <Container>
+                <Grid sx={{ padding: '8px' }} container justifyContent='space-between'>
+                    <Grid item>
+                        <Typography variant="h4">{category.charAt(0).toUpperCase() + category.slice(1)}</Typography>
+                    </Grid>
+                </Grid>
+            </Container>
+        );
+    } // assignment limit
+
 
     const handleAdd = () => {
         setModalMode('add');
@@ -42,7 +64,7 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
             updatedData[currentRowIndex] = { ...data, edited: new Date().toISOString() };
             setCategoryData(updatedData);
         }
-        
+
         if (tableRef.current && modalMode === 'add') {
             // make sure the table is rendered and then scroll to the bottom
             setTimeout(() => {
@@ -54,7 +76,7 @@ const CategoryPage: React.FC<Props> = ({ category }) => {
     };
 
     const handleDelete = (index: number) => {
-        setCategoryData(categoryData.filter((_, i) => i !== index));
+        setCategoryData(prevData => prevData.filter((_, i) => i !== index));
     };
 
     const fields = [
