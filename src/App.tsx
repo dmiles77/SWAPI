@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useParams } from 'react-router-
 import { AppContextProvider } from './context/AppContext';
 import SearchPage from './components/SearchPage';
 import CategoryPage from './components/CategoryPage';
+import TestingPage from './components/TestingPage';
 
 const CategoryRouteWrapper: React.FC = () => {
   const { category } = useParams<{ category: string }>();
@@ -14,7 +15,8 @@ const App: React.FC = () => {
     <Router>
       <AppContextProvider>
         <Routes>
-          <Route path="/" element={<SearchPage />} />
+          <Route path="/" element={<TestingPage />} /> {/* Default route */}
+          <Route path="/search" element={<SearchPage />} /> {/* SearchPage moved to /search */}
           <Route path="/category/:category" element={<CategoryRouteWrapper />} />
         </Routes>
       </AppContextProvider>
