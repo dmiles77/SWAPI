@@ -2,6 +2,7 @@ import React, { useState, CSSProperties } from "react";
 import { TreeMap, TreeNode, ColorRangeBehavior, TooltipPosition, ICustomTooltipProps } from "miles-tree-map";
 import { worldMap as initialWorldMap } from "../consts/consts";
 import CustomTooltip from "./CustomTooltip";
+import CustomNodeComponent from "./CustomNodeComponent";
 
 const TreeMapWithControls: React.FC = () => {
   const [data, setData] = useState<TreeNode>({ ...initialWorldMap }); // Ensure a new object reference
@@ -16,6 +17,7 @@ const TreeMapWithControls: React.FC = () => {
   const [backButtonEnabled, setBackButtonEnabled] = useState<boolean>(false);
   const [tooltipEnabled, setTooltipEnabled] = useState<boolean>(true);
   const [customTooltipEnabled, setCustomTooltipEnabled] = useState<boolean>(false);
+  const [customNodeEnabled, setCustomNodeEnabled] = useState<boolean>(false);
   const [updateKey, setUpdateKey] = useState<number>(0); // Add a key to force re-rendering
 
   const handleJsonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -170,7 +172,7 @@ const TreeMapWithControls: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.controlPanel}>
         <h3 style={styles.heading}>TreeMap Controls</h3>
-        
+
         <div style={styles.section}>
           <h4 style={styles.sectionTitle}>Data Configuration</h4>
           <div style={styles.controlGroup}>
@@ -200,7 +202,7 @@ const TreeMapWithControls: React.FC = () => {
               ))}
             </div>
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.label}>Color Range Behavior:</label>
             <select
@@ -219,7 +221,7 @@ const TreeMapWithControls: React.FC = () => {
               <option value="heatmap">Heatmap</option>
             </select>
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.label}>Border Radius:</label>
             <input
@@ -230,7 +232,7 @@ const TreeMapWithControls: React.FC = () => {
               style={styles.input}
             />
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.label}>Padding Inner:</label>
             <input
@@ -283,7 +285,7 @@ const TreeMapWithControls: React.FC = () => {
               <option value="nodeBottomCenter">Node Bottom Center</option>
             </select>
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Tooltip Enabled:</span>
@@ -295,7 +297,7 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Use Custom Tooltip:</span>
@@ -307,7 +309,19 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-          
+
+          <div style={styles.controlGroup}>
+            <label style={styles.checkboxLabel}>
+              <span>Use Custom Nodes:</span>
+              <input
+                type="checkbox"
+                checked={customNodeEnabled}
+                onChange={(e) => setCustomNodeEnabled(e.target.checked)}
+                style={styles.checkbox}
+              />
+            </label>
+          </div>
+
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Breadcrumb Enabled:</span>
@@ -319,7 +333,7 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-          
+
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Back Button Enabled:</span>
@@ -333,7 +347,7 @@ const TreeMapWithControls: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       <div style={styles.treeMapContainer}>
         <TreeMap
           key={updateKey}
@@ -349,6 +363,7 @@ const TreeMapWithControls: React.FC = () => {
           tooltipEnabled={tooltipEnabled}
           tooltipComponentRender={customTooltipEnabled ? customTooltipRenderer : undefined}
           customTooltipStyle={customTooltipEnabled ? transparentTooltipStyle : undefined}
+          renderComponent={customNodeEnabled ? (props) => <CustomNodeComponent {...props} /> : undefined}
         />
       </div>
     </div>
