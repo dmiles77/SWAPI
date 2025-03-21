@@ -1,14 +1,36 @@
 import React, { useState, CSSProperties } from "react";
-import { TreeMap, TreeNode, ColorRangeBehavior, TooltipPosition, ICustomTooltipProps } from "miles-tree-map";
+import { TreeMap, TreeNode, ColorRangeBehavior, TooltipPosition, ICustomTooltipProps, ICustomNodeProps } from "miles-tree-map";
 import { worldMap as initialWorldMap } from "../consts/consts";
 import CustomTooltip from "./CustomTooltip";
 import CustomNodeComponent from "./CustomNodeComponent";
 
+// Interface for TreeMap instance data
+interface TreeMapInstance {
+  id: string;
+  data: TreeNode;
+  jsonInput: string;
+  colorRange: string[];
+  colorRangeBehavior: ColorRangeBehavior;
+  updateKey: number;
+}
+
 const TreeMapWithControls: React.FC = () => {
-  const [data, setData] = useState<TreeNode>({ ...initialWorldMap }); // Ensure a new object reference
-  const [jsonInput, setJsonInput] = useState<string>(JSON.stringify(initialWorldMap, null, 2));
-  const [colorRange, setColorRange] = useState<string[]>(["#4ecdc4", "#ff6b6b"]);
-  const [colorRangeBehavior, setColorRangeBehavior] = useState<ColorRangeBehavior>("heatmap");
+  // Create a function to generate a new TreeMap instance with default values
+  const createNewTreeMapInstance = (): TreeMapInstance => ({
+    id: `tree-map-${Date.now()}`,
+    data: { ...initialWorldMap },
+    jsonInput: JSON.stringify(initialWorldMap, null, 2),
+    colorRange: ["#4ecdc4", "#ff6b6b"],
+    colorRangeBehavior: "heatmap" as ColorRangeBehavior,
+    updateKey: 0
+  });
+
+  // Initialize with one TreeMap instance
+  const [treeMapInstances, setTreeMapInstances] = useState<TreeMapInstance[]>([
+    createNewTreeMapInstance()
+  ]);
+
+  // Global settings (shared across all TreeMaps)
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>("mouseRight");
   const [animationDuration, setAnimationDuration] = useState<number>(300);
   const [paddingInner, setPaddingInner] = useState<number>(5);
@@ -18,29 +40,72 @@ const TreeMapWithControls: React.FC = () => {
   const [tooltipEnabled, setTooltipEnabled] = useState<boolean>(true);
   const [customTooltipEnabled, setCustomTooltipEnabled] = useState<boolean>(false);
   const [customNodeEnabled, setCustomNodeEnabled] = useState<boolean>(false);
-  const [updateKey, setUpdateKey] = useState<number>(0); // Add a key to force re-rendering
+  const [showIconsEnabled, setShowIconsEnabled] = useState<boolean>(true);
 
-  const handleJsonChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newJson = event.target.value;
-    setJsonInput(newJson);
-
-    try {
-      const parsedData = JSON.parse(newJson);
-      // Create a completely new deep copy using JSON stringify/parse
-      const deepCopy = JSON.parse(JSON.stringify(parsedData));
-      setData(deepCopy);
-      // Force a re-render of the TreeMap by updating the key
-      setUpdateKey(prevKey => prevKey + 1);
-      console.log("Parsed Data:", deepCopy);
-    } catch (error) {
-      console.error("Invalid JSON format", error);
-    }
+  // Function to add a new TreeMap instance
+  const addTreeMapInstance = () => {
+    setTreeMapInstances(prevInstances => [...prevInstances, createNewTreeMapInstance()]);
   };
 
-  const handleColorChange = (index: number, value: string) => {
-    const newColorRange = [...colorRange];
-    newColorRange[index] = value;
-    setColorRange(newColorRange);
+  // Function to remove a TreeMap instance
+  const removeTreeMapInstance = (idToRemove: string) => {
+    setTreeMapInstances(prevInstances => prevInstances.filter(instance => instance.id !== idToRemove));
+  };
+
+  // Function to handle JSON changes for a specific TreeMap instance
+  const handleJsonChange = (instanceId: string, newJson: string) => {
+    setTreeMapInstances(prevInstances => 
+      prevInstances.map(instance => {
+        if (instance.id !== instanceId) return instance;
+        
+        try {
+          const parsedData = JSON.parse(newJson);
+          // Create a completely new deep copy using JSON stringify/parse
+          const deepCopy = JSON.parse(JSON.stringify(parsedData));
+          return {
+            ...instance,
+            jsonInput: newJson,
+            data: deepCopy,
+            updateKey: instance.updateKey + 1
+          };
+        } catch (error) {
+          console.error("Invalid JSON format", error);
+          return {
+            ...instance,
+            jsonInput: newJson
+          };
+        }
+      })
+    );
+  };
+
+  // Function to handle color changes for a specific TreeMap instance
+  const handleColorChange = (instanceId: string, index: number, value: string) => {
+    setTreeMapInstances(prevInstances => 
+      prevInstances.map(instance => {
+        if (instance.id !== instanceId) return instance;
+        
+        const newColorRange = [...instance.colorRange];
+        newColorRange[index] = value;
+        return {
+          ...instance,
+          colorRange: newColorRange
+        };
+      })
+    );
+  };
+
+  // Function to handle color range behavior changes for a specific TreeMap instance
+  const handleColorRangeBehaviorChange = (instanceId: string, behavior: ColorRangeBehavior) => {
+    setTreeMapInstances(prevInstances => 
+      prevInstances.map(instance => {
+        if (instance.id !== instanceId) return instance;
+        return {
+          ...instance,
+          colorRangeBehavior: behavior
+        };
+      })
+    );
   };
 
   // Custom tooltip style with transparent background
@@ -100,6 +165,42 @@ const TreeMapWithControls: React.FC = () => {
     controlGroup: {
       marginBottom: "15px",
     },
+    dataConfigContainer: {
+      borderBottom: "1px solid #eee",
+      paddingBottom: "15px",
+      marginBottom: "15px",
+    },
+    dataHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "10px",
+    },
+    removeButton: {
+      backgroundColor: "#ff6b6b",
+      color: "white",
+      border: "none",
+      borderRadius: "4px",
+      padding: "4px 8px",
+      cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "bold",
+    },
+    addButton: {
+      backgroundColor: "#4CAF50",
+      color: "white",
+      border: "none", 
+      borderRadius: "4px",
+      padding: "8px 16px",
+      cursor: "pointer",
+      fontSize: "14px",
+      fontWeight: "bold",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      margin: "10px auto",
+      width: "100%",
+    },
     label: {
       display: "block",
       fontWeight: 500,
@@ -122,7 +223,7 @@ const TreeMapWithControls: React.FC = () => {
       border: "1px solid #ddd",
       marginTop: "5px",
       fontFamily: "monospace",
-      minHeight: "360px",
+      minHeight: "200px",
       maxHeight: "600px",
       fontSize: "14px",
       boxSizing: "border-box",
@@ -165,63 +266,120 @@ const TreeMapWithControls: React.FC = () => {
       flex: 3,
       position: "relative",
       overflow: "hidden",
+      display: "flex",
+      flexWrap: "wrap",
     },
+    singleTreeMap: {
+      boxSizing: "border-box" as "border-box",
+      border: "1px solid rgba(0, 0, 0, 0.1)",
+      position: "relative" as "relative",
+    }
+  };
+
+  // Calculate the grid layout for the TreeMaps
+  const getTreeMapLayout = (index: number, total: number): CSSProperties => {
+    let width = "100%";
+    let height = "100%";
+    
+    if (total === 2) {
+      // For 2 maps, split horizontally
+      width = "100%";
+      height = "50%";
+    } else if (total === 3 || total === 4) {
+      // For 3-4 maps, use a 2x2 grid
+      width = "50%";
+      height = "50%";
+    } else if (total > 4) {
+      // For 5+ maps, use a more dynamic approach
+      const cols = Math.ceil(Math.sqrt(total));
+      const rows = Math.ceil(total / cols);
+      width = `${100 / cols}%`;
+      height = `${100 / rows}%`;
+    }
+    
+    return {
+      width,
+      height,
+    };
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.controlPanel}>
         <h3 style={styles.heading}>TreeMap Controls</h3>
-
+        
         <div style={styles.section}>
           <h4 style={styles.sectionTitle}>Data Configuration</h4>
-          <div style={styles.controlGroup}>
-            <label style={styles.label}>Data (JSON):</label>
-            <textarea
-              value={jsonInput}
-              onChange={handleJsonChange}
-              style={styles.textarea}
-            />
-          </div>
+          
+          {treeMapInstances.map((instance, index) => (
+            <div key={instance.id} style={styles.dataConfigContainer}>
+              <div style={styles.dataHeader}>
+                <h5 style={{ margin: 0 }}>Data JSON {index + 1}</h5>
+                {treeMapInstances.length > 1 && (
+                  <button 
+                    style={styles.removeButton} 
+                    onClick={() => removeTreeMapInstance(instance.id)}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              
+              <div style={styles.controlGroup}>
+                <textarea
+                  value={instance.jsonInput}
+                  onChange={(e) => handleJsonChange(instance.id, e.target.value)}
+                  style={styles.textarea}
+                />
+              </div>
+              
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>Color Range:</label>
+                <div style={styles.colorInputGroup}>
+                  {instance.colorRange.map((color, colorIndex) => (
+                    <input
+                      key={colorIndex}
+                      type="color"
+                      value={color}
+                      onChange={(e) => handleColorChange(instance.id, colorIndex, e.target.value)}
+                      style={styles.colorInput}
+                      title={`Color ${colorIndex + 1}: ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div style={styles.controlGroup}>
+                <label style={styles.label}>Color Range Behavior:</label>
+                <select
+                  value={instance.colorRangeBehavior}
+                  onChange={(e) => handleColorRangeBehaviorChange(instance.id, e.target.value as ColorRangeBehavior)}
+                  style={styles.select}
+                >
+                  <option value="oneColor">One Color</option>
+                  <option value="gradient">Gradient</option>
+                  <option value="discrete">Discrete</option>
+                  <option value="transparent">Transparent</option>
+                  <option value="borderOnly">Border Only</option>
+                  <option value="random">Random</option>
+                  <option value="randomRangeColor">Random Range Color</option>
+                  <option value="wild">Wild</option>
+                  <option value="heatmap">Heatmap</option>
+                </select>
+              </div>
+            </div>
+          ))}
+          
+          <button 
+            style={styles.addButton} 
+            onClick={addTreeMapInstance}
+          >
+            + Add New TreeMap
+          </button>
         </div>
 
         <div style={styles.section}>
-          <h4 style={styles.sectionTitle}>Appearance</h4>
-          <div style={styles.controlGroup}>
-            <label style={styles.label}>Color Range:</label>
-            <div style={styles.colorInputGroup}>
-              {colorRange.map((color, index) => (
-                <input
-                  key={index}
-                  type="color"
-                  value={color}
-                  onChange={(e) => handleColorChange(index, e.target.value)}
-                  style={styles.colorInput}
-                  title={`Color ${index + 1}: ${color}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div style={styles.controlGroup}>
-            <label style={styles.label}>Color Range Behavior:</label>
-            <select
-              value={colorRangeBehavior}
-              onChange={(e) => setColorRangeBehavior(e.target.value as ColorRangeBehavior)}
-              style={styles.select}
-            >
-              <option value="oneColor">One Color</option>
-              <option value="gradient">Gradient</option>
-              <option value="discrete">Discrete</option>
-              <option value="transparent">Transparent</option>
-              <option value="borderOnly">Border Only</option>
-              <option value="random">Random</option>
-              <option value="randomRangeColor">Random Range Color</option>
-              <option value="wild">Wild</option>
-              <option value="heatmap">Heatmap</option>
-            </select>
-          </div>
-
+          <h4 style={styles.sectionTitle}>Global Appearance</h4>
           <div style={styles.controlGroup}>
             <label style={styles.label}>Border Radius:</label>
             <input
@@ -232,7 +390,7 @@ const TreeMapWithControls: React.FC = () => {
               style={styles.input}
             />
           </div>
-
+          
           <div style={styles.controlGroup}>
             <label style={styles.label}>Padding Inner:</label>
             <input
@@ -285,7 +443,7 @@ const TreeMapWithControls: React.FC = () => {
               <option value="nodeBottomCenter">Node Bottom Center</option>
             </select>
           </div>
-
+          
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Tooltip Enabled:</span>
@@ -297,7 +455,7 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-
+          
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Use Custom Tooltip:</span>
@@ -309,7 +467,7 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-
+          
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Use Custom Nodes:</span>
@@ -321,7 +479,21 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-
+          
+          {customNodeEnabled && (
+            <div style={styles.controlGroup}>
+              <label style={styles.checkboxLabel}>
+                <span>Show Icons in Nodes:</span>
+                <input
+                  type="checkbox"
+                  checked={showIconsEnabled}
+                  onChange={(e) => setShowIconsEnabled(e.target.checked)}
+                  style={styles.checkbox}
+                />
+              </label>
+            </div>
+          )}
+          
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Breadcrumb Enabled:</span>
@@ -333,7 +505,7 @@ const TreeMapWithControls: React.FC = () => {
               />
             </label>
           </div>
-
+          
           <div style={styles.controlGroup}>
             <label style={styles.checkboxLabel}>
               <span>Back Button Enabled:</span>
@@ -347,24 +519,41 @@ const TreeMapWithControls: React.FC = () => {
           </div>
         </div>
       </div>
-
+      
       <div style={styles.treeMapContainer}>
-        <TreeMap
-          key={updateKey}
-          data={data}
-          colorRange={colorRange}
-          colorRangeBehavior={colorRangeBehavior}
-          customTooltipPosition={tooltipPosition}
-          animationDuration={animationDuration}
-          borderRadius={borderRadius}
-          paddingInner={paddingInner}
-          breadcrumbEnabled={breadcrumbEnabled}
-          backButtonEnabled={backButtonEnabled}
-          tooltipEnabled={tooltipEnabled}
-          tooltipComponentRender={customTooltipEnabled ? customTooltipRenderer : undefined}
-          customTooltipStyle={customTooltipEnabled ? transparentTooltipStyle : undefined}
-          renderComponent={customNodeEnabled ? (props) => <CustomNodeComponent {...props} /> : undefined}
-        />
+        {treeMapInstances.map((instance, index) => {
+          const layoutStyle = getTreeMapLayout(index, treeMapInstances.length);
+          
+          return (
+            <div 
+              key={instance.id} 
+              style={{
+                ...styles.singleTreeMap,
+                ...layoutStyle
+              }}
+            >
+              <TreeMap
+                key={instance.updateKey}
+                data={instance.data}
+                colorRange={instance.colorRange}
+                renderComponent={customNodeEnabled ? 
+                  (props) => <CustomNodeComponent {...props} showIcons={showIconsEnabled} /> : 
+                  undefined
+                }
+                colorRangeBehavior={instance.colorRangeBehavior}
+                customTooltipPosition={tooltipPosition}
+                animationDuration={animationDuration}
+                borderRadius={borderRadius}
+                paddingInner={paddingInner}
+                breadcrumbEnabled={breadcrumbEnabled}
+                backButtonEnabled={backButtonEnabled}
+                tooltipEnabled={tooltipEnabled}
+                tooltipComponentRender={customTooltipEnabled ? customTooltipRenderer : undefined}
+                customTooltipStyle={customTooltipEnabled ? transparentTooltipStyle : undefined}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

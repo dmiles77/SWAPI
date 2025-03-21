@@ -29,14 +29,21 @@ const icons: Record<string, string> = {
 // Get a default icon for names not in our mapping
 const defaultIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>`;
 
-const CustomNodeComponent: React.FC<ICustomNodeProps> = ({
+// Extended props interface with showIcons prop
+interface CustomNodeComponentProps extends ICustomNodeProps {
+    showIcons?: boolean;
+}
+
+const CustomNodeComponent: React.FC<CustomNodeComponentProps> = ({
     node,
     width,
     height,
     backgroundColor,
     handleBack,
-    history
+    history,
+    showIcons = true
 }) => {
+    // Get the appropriate icon based on the node name, defaulting to a generic icon
     const getIconSvg = () => {
         const lowerName = node.name.toLowerCase();
         const matchingKey = Object.keys(icons).find(key => lowerName.includes(key.toLowerCase()));
@@ -66,20 +73,40 @@ const CustomNodeComponent: React.FC<ICustomNodeProps> = ({
                 padding: '4px'
             }}
         >
-            <div
-                style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: `${Math.min(width, height) * 0.6}px`,
-                    height: `${Math.min(width, height) * 0.6}px`,
-                    opacity: 0.3,
-                    zIndex: 1,
-                    color: 'rgba(255, 255, 255, 0.7)'
-                }}
-                dangerouslySetInnerHTML={createIconMarkup()}
-            />
+            {showIcons && (
+                <div 
+                    style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: `${Math.min(width, height) * 0.6}px`,
+                        height: `${Math.min(width, height) * 0.6}px`,
+                        opacity: 0.3,
+                        zIndex: 1,
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }}
+                    dangerouslySetInnerHTML={createIconMarkup()}
+                />
+            )}
+            
+            {!showIcons && width > 60 && height > 30 && (
+                <div 
+                    style={{
+                        fontSize: Math.max(9, Math.min(14, width / 12)),
+                        textAlign: 'center',
+                        color: '#fff',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '90%'
+                    }}
+                >
+                    {node.name}
+                </div>
+            )}
+            
             {width > 80 && height > 60 && node.value !== undefined && (
                 <div
                     style={{
